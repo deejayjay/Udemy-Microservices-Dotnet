@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mango.Services.CouponAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/coupon")]
     [ApiController]
     public class CouponAPIController(AppDbContext db, IMapper mapper) : ControllerBase
     {
@@ -71,7 +71,7 @@ namespace Mango.Services.CouponAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ResponseDto> CreateCouponAsync(CouponDto couponDto)
+        public async Task<ResponseDto> CreateCouponAsync([FromBody] CouponDto couponDto)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace Mango.Services.CouponAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<ResponseDto> UpdateCouponAsync(CouponDto couponDto)
+        public async Task<ResponseDto> UpdateCouponAsync([FromBody] CouponDto couponDto)
         {
             try
             {
@@ -118,9 +118,9 @@ namespace Mango.Services.CouponAPI.Controllers
             try
             {
                 var existingCoupon = await _db.Coupons.FirstAsync(c => c.CouponId == id);
-                
+
                 _db.Coupons.Remove(existingCoupon);
-                await _db.SaveChangesAsync();                
+                await _db.SaveChangesAsync();
             }
             catch (Exception e)
             {
