@@ -1,0 +1,39 @@
+﻿@model RegistrationRequestDto
+
+<form method="post">
+    <div class="container border p-4">
+        <div class="row text-center p-3">
+            <h1>Register</h1>
+        </div>        
+        <div class="row">
+            <div class="col-12 col-md-6 offset-md-3 pb-2">
+                <input asp-for="Name" class="form-control" placeholder="John Smith" />
+                <span asp-validation-for="Name" class="text-danger" />
+            </div>
+            <div class="col-12 col-md-6 offset-md-3 pb-2">
+                <input asp-for="Email" class="form-control" placeholder="yourname@example.com" />
+                <span asp-validation-for="Email" class="text-danger" />
+            </div>            
+            <div class="col-12 col-md-6 offset-md-3 pb-2">
+                <input asp-for="PhoneNumber" class="form-control" placeholder="7801231111" />
+                <span asp-validation-for="PhoneNumber" class="text-danger" />
+            </div>
+            <div class="col-12 col-md-6 offset-md-3 pb-2">
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" placeholder="your password" class="text-danger" />
+            </div>
+            <div class="col-12 col-md-6 offset-md-3 pb-2">
+                <select asp-for="Role" class="form-select" asp-items="@ViewBag.RoleList">
+                    <option disabled selected>- Select Role -</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-6 offset-md-3 pb-2">
+                <button type="submit" class="btn btn-success d-block w-100">Register</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

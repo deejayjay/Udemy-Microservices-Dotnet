@@ -7,22 +7,64 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mango.Services.AuthAPI.Service
 {
-    public class AuthService : IAuthService
+    public class AuthService(AppDbContext db, 
+        UserManager<ApplicationUser> userManager, 
+        RoleManager<IdentityRole> roleManager, 
+        IJwtTokenGenerator jwtTokenGenerator) : IAuthService
     {
-        private readonly AppDbContext _db;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly AppDbContext _db = db;
+        private readonly UserManager<ApplicationUser> _userManager = userManager;
+        private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+        private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
 
-        public AuthService(AppDbContext db, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public async Task<bool> AssignRoleAsync(string email, string roleName)
         {
-            _db = db;
-            _userManager = userManager;
-            _roleManager = roleManager;
+            var userFromDb = await _db.ApplicationUsers.FirstOrDefaultAsync(u => u.Email!.ToLower() == email.ToLower());
+
+            if (userFromDb is null) 
+                return false;
+            
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                // Create role if it does not exist
+                await _roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+
+            await _userManager.AddToRoleAsync(userFromDb, roleName);
+            return true;            
         }
 
-        public Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto)
+        public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto)
         {
-            throw new NotImplementedException();
+            var userFromDb = await _db.ApplicationUsers.FirstOrDefaultAsync(u => u.UserName!.ToLower() == loginRequestDto.UserName.ToLower());
+
+            if (userFromDb is null || !await _userManager.CheckPasswordAsync(userFromDb, loginRequestDto.Password))
+            {
+                return new LoginResponseDto
+                {
+                    User = null,
+                    Token = string.Empty
+                };
+            }
+
+            // User was found. Generate JWT.
+            var roles = await _userManager.GetRolesAsync(userFromDb);
+
+            UserDto userDto = new() 
+            {
+                Id = userFromDb.Id,
+                Email = userFromDb.Email!,
+                Name = userFromDb.Name,
+                PhoneNumber = userFromDb.PhoneNumber!
+            };
+
+            LoginResponseDto loginResponseDto = new()
+            {
+                User = userDto, 
+                Token = _jwtTokenGenerator.GenerateToken(userFromDb, roles)
+            };
+
+            return loginResponseDto;
         }
 
         public async Task<string> RegisterAsync(RegistrationRequestDto registrationRequestDto)
