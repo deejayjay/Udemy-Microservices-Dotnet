@@ -1,9 +1,8 @@
-﻿namespace Mango.Web.Service.IService
+﻿namespace Mango.Web.Service.IService;
+
+public interface ITokenProvider
 {
-    public interface ITokenProvider
-    {
-        void SetToken(string token);
-        string? GetToken();
-        void ClearToken();
-    }
+    void SetToken(string token);
+    string? GetToken();
+    void ClearToken();
 }

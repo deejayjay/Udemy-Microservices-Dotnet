@@ -1,0 +1,43 @@
+@Mango.Services.ProductAPI_HostAddress = https://localhost:7000
+@Mango.Services.ProductAPI_Token = Add_YOUR_TOKEN
+
+### Get all products
+GET {{Mango.Services.ProductAPI_HostAddress}}/api/product/
+Accept: application/json
+Authorization: Bearer {{Mango.Services.ProductAPI_Token}}
+
+### Get product with the given 'id'
+GET {{Mango.Services.ProductAPI_HostAddress}}/api/product/2
+Accept: application/json
+Authorization: Bearer {{Mango.Services.ProductAPI_Token}}
+
+### Create a new product
+POST {{Mango.Services.ProductAPI_HostAddress}}/api/product
+Content-Type: application/json
+Authorization: Bearer {{Mango.Services.ProductAPI_Token}}
+{
+    "name": "Butter Chicken",
+    "price": 16.99,
+    "description": "Butter chicken, traditionally known as murgh makhani, is an Indian dish originating in Delhi.<br />It is a type of curry made from chicken with a spiced tomato and butter sauce.",
+    "categoryName": "Main",
+    "imageUrl": "https://placehold.co/600x400"
+}
+
+### Update a product
+PUT {{Mango.Services.ProductAPI_HostAddress}}/api/product
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{Mango.Services.ProductAPI_Token}}
+{
+    "productId": 6,
+    "name": "Test Two",
+    "price": 6.99,
+    "description": "Butter chicken, traditionally known as murgh makhani, is an Indian dish originating in Delhi.<br />It is a type of curry made from chicken with a spiced tomato and butter sauce.",
+    "categoryName": "Main",
+    "imageUrl": "https://placehold.co/600x400"
+}
+
+### Delete product with the given 'id'
+DELETE {{Mango.Services.ProductAPI_HostAddress}}/api/product/6
+Accept: application/json
+Authorization: Bearer {{Mango.Services.ProductAPI_Token}}

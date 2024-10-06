@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("CouponDb")));
 
+// Register AutoMapper
 IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
 builder.Services.AddSingleton(mapper);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -19,7 +20,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.AddAppSwaggerGen();
 
 builder.AddAppAuthentication();
-
 builder.Services.AddAuthorization();
 
 var app = builder.Build();

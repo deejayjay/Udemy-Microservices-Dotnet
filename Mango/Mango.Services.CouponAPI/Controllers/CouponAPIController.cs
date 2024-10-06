@@ -1,139 +1,138 @@
 ﻿using AutoMapper;
-using Mango.Services.CouponAPI.Data;
-using Mango.Services.CouponAPI.Models;
-using Mango.Services.CouponAPI.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mango.Services.CouponAPI.Data;
+using Mango.Services.CouponAPI.Models;
+using Mango.Services.CouponAPI.Models.Dtos;
 
-namespace Mango.Services.CouponAPI.Controllers
+namespace Mango.Services.CouponAPI.Controllers;
+
+[Authorize]
+[Route("api/coupon")]
+[ApiController]
+public class CouponAPIController(AppDbContext db, IMapper mapper) : ControllerBase
 {
-    [Route("api/coupon")]
-    [ApiController]
-    [Authorize]
-    public class CouponAPIController(AppDbContext db, IMapper mapper) : ControllerBase
+    private readonly AppDbContext _db = db;
+    private readonly IMapper _mapper = mapper;
+
+    private ResponseDto _response = new();
+
+    [HttpGet]
+    public async Task<ResponseDto> GetAllAsync()
     {
-        private readonly AppDbContext _db = db;
-        private readonly IMapper _mapper = mapper;
-
-        private ResponseDto _response = new();
-
-        [HttpGet]
-        public async Task<ResponseDto> GetAllAsync()
+        try
         {
-            try
-            {
-                var couponsList = await _db.Coupons.ToListAsync();
+            var couponsList = await _db.Coupons.ToListAsync();
 
-                _response.Result = _mapper.Map<IEnumerable<CouponDto>>(couponsList);
-            }
-            catch (Exception e)
-            {
-                _response.IsSuccess = false;
-                _response.Message = e.Message;
-            }
-
-            return _response;
+            _response.Result = _mapper.Map<IEnumerable<CouponDto>>(couponsList);
+        }
+        catch (Exception e)
+        {
+            _response.IsSuccess = false;
+            _response.Message = e.Message;
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ResponseDto> GetByIdAsync(int id)
+        return _response;
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ResponseDto> GetByIdAsync(int id)
+    {
+        try
         {
-            try
-            {
-                var coupon = await _db.Coupons.FirstAsync(c => c.CouponId == id);
+            var coupon = await _db.Coupons.FirstAsync(c => c.CouponId == id);
 
-                _response.Result = _mapper.Map<CouponDto>(coupon);
-            }
-            catch (Exception e)
-            {
-                _response.IsSuccess = false;
-                _response.Message = e.Message;
-            }
-
-            return _response;
+            _response.Result = _mapper.Map<CouponDto>(coupon);
+        }
+        catch (Exception e)
+        {
+            _response.IsSuccess = false;
+            _response.Message = e.Message;
         }
 
-        [HttpGet("code/{code}")]
-        public async Task<ResponseDto> GetByCodeAsync(string code)
+        return _response;
+    }
+
+    [HttpGet("code/{code}")]
+    public async Task<ResponseDto> GetByCodeAsync(string code)
+    {
+        try
         {
-            try
-            {
-                var coupon = await _db.Coupons.FirstAsync(c => c.CouponCode.ToLower() == code.ToLower());
+            var coupon = await _db.Coupons.FirstAsync(c => c.CouponCode.ToLower() == code.ToLower());
 
-                _response.Result = _mapper.Map<CouponDto>(coupon);
-            }
-            catch (Exception e)
-            {
-                _response.IsSuccess = false;
-                _response.Message = e.Message;
-            }
-
-            return _response;
+            _response.Result = _mapper.Map<CouponDto>(coupon);
+        }
+        catch (Exception e)
+        {
+            _response.IsSuccess = false;
+            _response.Message = e.Message;
         }
 
-        [HttpPost]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<ResponseDto> CreateCouponAsync([FromBody] CouponDto couponDto)
+        return _response;
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpPost]
+    public async Task<ResponseDto> CreateCouponAsync([FromBody] CouponDto couponDto)
+    {
+        try
         {
-            try
-            {
-                var coupon = _mapper.Map<Coupon>(couponDto);
+            var coupon = _mapper.Map<Coupon>(couponDto);
 
-                await _db.Coupons.AddAsync(coupon);
-                await _db.SaveChangesAsync();
+            await _db.Coupons.AddAsync(coupon);
+            await _db.SaveChangesAsync();
 
-                _response.Result = _mapper.Map<CouponDto>(coupon);
-            }
-            catch (Exception e)
-            {
-                _response.IsSuccess = false;
-                _response.Message = e.Message;
-            }
-
-            return _response;
+            _response.Result = _mapper.Map<CouponDto>(coupon);
+        }
+        catch (Exception e)
+        {
+            _response.IsSuccess = false;
+            _response.Message = e.Message;
         }
 
-        [HttpPut]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<ResponseDto> UpdateCouponAsync([FromBody] CouponDto couponDto)
+        return _response;
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut]
+    public async Task<ResponseDto> UpdateCouponAsync([FromBody] CouponDto couponDto)
+    {
+        try
         {
-            try
-            {
-                var coupon = _mapper.Map<Coupon>(couponDto);
+            var coupon = _mapper.Map<Coupon>(couponDto);
 
-                _db.Coupons.Update(coupon);
-                await _db.SaveChangesAsync();
+            _db.Coupons.Update(coupon);
+            await _db.SaveChangesAsync();
 
-                _response.Result = _mapper.Map<CouponDto>(coupon);
-            }
-            catch (Exception e)
-            {
-                _response.IsSuccess = false;
-                _response.Message = e.Message;
-            }
-
-            return _response;
+            _response.Result = _mapper.Map<CouponDto>(coupon);
+        }
+        catch (Exception e)
+        {
+            _response.IsSuccess = false;
+            _response.Message = e.Message;
         }
 
-        [HttpDelete("{id:int}")]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<ResponseDto> DeleteCouponAsync(int id)
+        return _response;
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpDelete("{id:int}")]
+    public async Task<ResponseDto> DeleteCouponAsync(int id)
+    {
+        try
         {
-            try
-            {
-                var existingCoupon = await _db.Coupons.FirstAsync(c => c.CouponId == id);
+            var existingCoupon = await _db.Coupons.FirstAsync(c => c.CouponId == id);
 
-                _db.Coupons.Remove(existingCoupon);
-                await _db.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                _response.IsSuccess = false;
-                _response.Message = e.Message;
-            }
-
-            return _response;
+            _db.Coupons.Remove(existingCoupon);
+            await _db.SaveChangesAsync();
         }
+        catch (Exception e)
+        {
+            _response.IsSuccess = false;
+            _response.Message = e.Message;
+        }
+
+        return _response;
     }
 }

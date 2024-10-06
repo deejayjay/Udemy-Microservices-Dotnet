@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
+SD.ProductApiBase = builder.Configuration.GetValue<string>("ServiceUrls:ProductAPI")!;
 SD.CouponApiBase = builder.Configuration.GetValue<string>("ServiceUrls:CouponAPI")!;
 SD.AuthApiBase = builder.Configuration.GetValue<string>("ServiceUrls:AuthAPI")!;
 
@@ -14,11 +15,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<IAuthService, AuthService>();
 builder.Services.AddHttpClient<ICouponService, CouponService>();
+builder.Services.AddHttpClient<IProductService, ProductService>();
 
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<IBaseService, BaseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Add Authentication to container.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
