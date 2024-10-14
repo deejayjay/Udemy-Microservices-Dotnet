@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mango.Services.ProductAPI.Controllers;
 
-[Authorize]
+//[Authorize]
 [Route("api/product")]
 [ApiController]
 public class ProductAPIController(AppDbContext db, IMapper mapper) : ControllerBase
