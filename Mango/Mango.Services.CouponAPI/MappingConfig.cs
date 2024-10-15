@@ -8,11 +8,11 @@ public class MappingConfig
 {
     public static MapperConfiguration RegisterMaps()
     {
-        var mappingConfig = new MapperConfiguration(config =>
+        var mapperConfig = new MapperConfiguration(config =>
         {
             config.CreateMap<Coupon,CouponDto>().ReverseMap();
         });
 
-        return mappingConfig;
+        return mapperConfig;
     }
 }
