@@ -5,6 +5,7 @@ using Mango.Services.ShoppingCartAPI.Models.Dtos;
 using Mango.Services.ShoppingCartAPI.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Mango.Services.ShoppingCartAPI.Controllers;
 [Route("api/cart")]
@@ -18,7 +19,7 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
 
     private readonly ResponseDto _response = new();
 
-    [HttpGet("get/{userId}")]
+    [HttpGet("{userId}")]
     public async Task<ResponseDto> GetCartAsync(string userId)
     {
         try
@@ -26,7 +27,7 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
             CartDto? cart = null;
 
             var cartHeaderFromDb = await _db.CartHeaders.FirstOrDefaultAsync(ch => ch.UserId == userId);
-            
+
             cart = new()
             {
                 CartHeader = _mapper.Map<CartHeaderDto>(cartHeaderFromDb),
@@ -35,7 +36,7 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
             if (cartHeaderFromDb is not null)
             {
                 var cartDetailsFromDb = _db.CartDetails.Where(cd => cd.CartHeaderId == cartHeaderFromDb!.CartHeaderId);
-                
+
                 cart.CartDetails = _mapper.Map<IEnumerable<CartDetailsDto>>(cartDetailsFromDb);
 
                 var allProducts = await _productService.GetAllProductsAsync();
@@ -47,7 +48,7 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
                 }
 
                 // Apply coupon if any
-                if(!string.IsNullOrWhiteSpace(cart.CartHeader.CouponCode))
+                if (!string.IsNullOrWhiteSpace(cart.CartHeader.CouponCode))
                 {
                     var coupon = await _couponService.GetCouponByCodeAsync(cart.CartHeader.CouponCode);
 
@@ -74,7 +75,7 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
     {
         try
         {
-            var cartFromDb = await _db.CartHeaders.FirstAsync(ch => ch.UserId == cartDto.CartHeader.UserId);
+            var cartFromDb = await _db.CartHeaders.FirstAsync(u => u.UserId == cartDto.CartHeader.UserId);
             cartFromDb.CouponCode = cartDto.CartHeader.CouponCode;
 
             _db.CartHeaders.Update(cartFromDb);
@@ -85,9 +86,8 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
         catch (Exception ex)
         {
             _response.IsSuccess = false;
-            _response.Message = ex.Message;
+            _response.Message = ex.ToString();
         }
-
         return _response;
     }
 
@@ -162,7 +162,7 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
     }
 
     [HttpPost("remove")]
-    public async Task<ResponseDto> RemoveCartAsync([FromBody] int cartDetailsId)
+    public async Task<ResponseDto> RemoveFromCartAsync([FromBody] int cartDetailsId)
     {
         try
         {

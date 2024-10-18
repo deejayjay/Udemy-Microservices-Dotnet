@@ -25,7 +25,7 @@ public class AuthController(IAuthService authService, ITokenProvider tokenProvid
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login(LoginRequestDto model)
+    public async Task<IActionResult> Login(LoginRequestDto model, string? returnUrl = null)
     {
         var responseDto = await _authService.LoginAsync(model);
 
@@ -36,6 +36,12 @@ public class AuthController(IAuthService authService, ITokenProvider tokenProvid
             await SignInUserAsync(loginResponseDto!);
 
             _tokenProvider.SetToken(loginResponseDto!.Token);
+
+            // Redirect to the ReturnUrl if it's valid
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
 
             return RedirectToAction("Index", "Home");
         }

@@ -8,9 +8,9 @@ using Mango.Services.CouponAPI.Models.Dtos;
 
 namespace Mango.Services.CouponAPI.Controllers;
 
-//[Authorize]
 [Route("api/coupon")]
 [ApiController]
+[Authorize]
 public class CouponAPIController(AppDbContext db, IMapper mapper) : ControllerBase
 {
     private readonly AppDbContext _db = db;
