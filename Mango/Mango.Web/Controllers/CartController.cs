@@ -18,6 +18,14 @@ public class CartController(ICartService cartService) : Controller
         return View(cart);
     }
 
+    [Authorize]
+    public async Task<IActionResult> Checkout()
+    {
+        var cart = await LoadCartDtoBasedOnLoggedInUserAsync();
+
+        return View(cart);
+    }
+
     public async Task<IActionResult> Remove(int cartDetailsId)
     {
         var userId = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Sub).FirstOrDefault()?.Value;
