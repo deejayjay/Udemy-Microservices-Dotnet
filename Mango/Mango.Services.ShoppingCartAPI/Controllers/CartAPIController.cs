@@ -206,7 +206,7 @@ public class CartAPIController(AppDbContext db,
     {
         try
         {
-            await _messageBus.PublishMessageAsync(cartDto, _configuration.GetValue<string>("ServiceBusQueueName")!);
+            await _messageBus.PublishMessageAsync(cartDto, _configuration.GetValue<string>("ServiceBusSettings:ShoppingCartQueueName")!);
 
             _response.Result = true;
         }
