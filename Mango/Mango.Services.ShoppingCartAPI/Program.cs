@@ -6,6 +6,7 @@ using Mango.Services.ShoppingCartAPI.Extensions;
 using Mango.Services.ShoppingCartAPI.Service.IService;
 using Mango.Services.ShoppingCartAPI.Service;
 using Mango.Services.ShoppingCartAPI.Utility;
+using Mango.MessageBus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,7 @@ builder.Services.AddHttpClient("Coupon", u => u.BaseAddress = new Uri(builder.Co
 
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IMessageBus, MessageBus>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

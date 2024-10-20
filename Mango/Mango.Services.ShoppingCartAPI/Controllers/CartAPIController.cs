@@ -1,21 +1,29 @@
 ﻿using AutoMapper;
+using Mango.MessageBus;
 using Mango.Services.ShoppingCartAPI.Data;
 using Mango.Services.ShoppingCartAPI.Models;
 using Mango.Services.ShoppingCartAPI.Models.Dtos;
 using Mango.Services.ShoppingCartAPI.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Mango.Services.ShoppingCartAPI.Controllers;
+
 [Route("api/cart")]
 [ApiController]
-public class CartAPIController(AppDbContext db, IMapper mapper, IProductService productService, ICouponService couponService) : ControllerBase
+public class CartAPIController(AppDbContext db, 
+    IMapper mapper, 
+    IConfiguration configuration,
+    IProductService productService, 
+    ICouponService couponService, 
+    IMessageBus messageBus) : ControllerBase
 {
     private readonly AppDbContext _db = db;
     private readonly IMapper _mapper = mapper;
+    private readonly IConfiguration _configuration = configuration;
     private readonly IProductService _productService = productService;
     private readonly ICouponService _couponService = couponService;
+    private readonly IMessageBus _messageBus = messageBus;
 
     private readonly ResponseDto _response = new();
 
@@ -190,6 +198,23 @@ public class CartAPIController(AppDbContext db, IMapper mapper, IProductService 
             _response.IsSuccess = false;
         }
 
+        return _response;
+    }
+
+    [HttpPost("email")]
+    public async Task<object> EmailCartAsync([FromBody] CartDto cartDto)
+    {
+        try
+        {
+            await _messageBus.PublishMessageAsync(cartDto, _configuration.GetValue<string>("ServiceBusQueueName")!);
+
+            _response.Result = true;
+        }
+        catch (Exception ex)
+        {
+            _response.IsSuccess = false;
+            _response.Message = ex.ToString();
+        }
         return _response;
     }
 }

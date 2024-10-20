@@ -43,8 +43,7 @@ public class CartController(ICartService cartService) : Controller
 
         if (response is not null && response.IsSuccess)
         {
-            TempData["success"] = "Cart updated successfully";
-            
+            TempData["success"] = "Cart updated successfully";            
         }
 
         return RedirectToAction(nameof(Index));
@@ -64,11 +63,29 @@ public class CartController(ICartService cartService) : Controller
         return View();
     }
 
+    [HttpPost]
+    public async Task<IActionResult> EmailCart(CartDto _)
+    {
+        var cart = await LoadCartDtoBasedOnLoggedInUserAsync();
+        cart.CartHeader.Email = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Email).FirstOrDefault()?.Value;
+
+        var response = await _cartService.EmailCartAsync(cart);
+
+        if (response is not null && response.IsSuccess)
+        {
+            TempData["success"] = "You should receive a copy of the cart in email shortly.";
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    #region Helper Methods
+    
     private async Task<CartDto> LoadCartDtoBasedOnLoggedInUserAsync()
     {
         var userId = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Sub).FirstOrDefault()?.Value;
 
-        if(string.IsNullOrWhiteSpace(userId))
+        if (string.IsNullOrWhiteSpace(userId))
             return new CartDto();
 
         var response = await _cartService.GetCartByUserIdAsync(userId);
@@ -79,5 +96,7 @@ public class CartController(ICartService cartService) : Controller
         var cartDto = JsonConvert.DeserializeObject<CartDto>(Convert.ToString(response.Result)!);
 
         return cartDto ?? new CartDto();
-    }
+    } 
+
+    #endregion
 }
