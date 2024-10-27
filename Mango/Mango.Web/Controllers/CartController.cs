@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Mango.Web.Models;
 using System.IdentityModel.Tokens.Jwt;
 using Newtonsoft.Json;
+using Mango.Web.Utility;
 
 namespace Mango.Web.Controllers;
 public class CartController(ICartService cartService, IOrderService orderService) : Controller
@@ -43,9 +44,40 @@ public class CartController(ICartService cartService, IOrderService orderService
         if(response is not null && response.IsSuccess)
         {
             // Get stripe session and redirect to stripe to place order.
+            var domain = $"{Request.Scheme}://{Request.Host.Value}";
+
+            StripeRequestDto stripeRequestDto = new()
+            {
+                ApprovedUrl = $"{domain}/cart/confirmation?orderId={orderHeaderDto.OrderHeaderId}",
+                CancelUrl = $"{domain}/cart/CheckOut",
+                OrderHeader = orderHeaderDto
+            };
+
+            var stripeSessionResponse = await _orderService.CreateStripeSessionAsync(stripeRequestDto);
+            var stripeResponse = JsonConvert.DeserializeObject<StripeRequestDto>(Convert.ToString(stripeSessionResponse!.Result)!);
+
+            Response.Headers.Add("Location", stripeResponse.StripeSessionUrl);
+            return new StatusCodeResult(303);
         }
 
         return View(cart);
+    }
+
+    public async Task<IActionResult> Confirmation(int orderId)
+    {
+        var response = await _orderService.ValidateStripeSessionAsync(orderId);
+
+        if (response is not null && response.IsSuccess)
+        {
+            var orderHeader = JsonConvert.DeserializeObject<OrderHeaderDto>(Convert.ToString(response.Result)!)!;
+
+            if (orderHeader.Status == SD.Status_Approved)
+            {
+                return View(orderId);
+            }
+        }
+
+        return View(orderId);
     }
 
     public async Task<IActionResult> Remove(int cartDetailsId)

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Mango.Services.CouponAPI.Data;
 using Mango.Services.CouponAPI.Models;
 using Mango.Services.CouponAPI.Models.Dtos;
+using Microsoft.Extensions.Options;
 
 namespace Mango.Services.CouponAPI.Controllers;
 
@@ -83,6 +84,17 @@ public class CouponAPIController(AppDbContext db, IMapper mapper) : ControllerBa
             await _db.Coupons.AddAsync(coupon);
             await _db.SaveChangesAsync();
 
+            var options = new Stripe.CouponCreateOptions
+            {
+                Id = couponDto.CouponCode,
+                Name = couponDto.CouponCode,
+                AmountOff = (long)(couponDto.DiscountAmount * 100),
+                Currency = "usd"
+            };
+
+            var service = new Stripe.CouponService();
+            await service.CreateAsync(options);
+
             _response.Result = _mapper.Map<CouponDto>(coupon);
         }
         catch (Exception e)
@@ -103,7 +115,7 @@ public class CouponAPIController(AppDbContext db, IMapper mapper) : ControllerBa
             var coupon = _mapper.Map<Coupon>(couponDto);
 
             _db.Coupons.Update(coupon);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();            
 
             _response.Result = _mapper.Map<CouponDto>(coupon);
         }
@@ -126,6 +138,9 @@ public class CouponAPIController(AppDbContext db, IMapper mapper) : ControllerBa
 
             _db.Coupons.Remove(existingCoupon);
             await _db.SaveChangesAsync();
+
+            var service = new Stripe.CouponService();
+            await service.DeleteAsync(existingCoupon.CouponCode);
         }
         catch (Exception e)
         {

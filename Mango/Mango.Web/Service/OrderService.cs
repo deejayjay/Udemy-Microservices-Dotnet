@@ -17,4 +17,24 @@ public class OrderService(IBaseService baseService) : IOrderService
             Data = cartDto
         });
     }
+
+    public async Task<ResponseDto?> CreateStripeSessionAsync(StripeRequestDto stripeRequestDto)
+    {
+        return await _baseService.SendAsync(new RequestDto
+        {
+            ApiType = SD.ApiType.POST,
+            Url = $"{SD.OrderApiBase}/api/order/create-stripe-session",
+            Data = stripeRequestDto
+        });
+    }
+
+    public async Task<ResponseDto?> ValidateStripeSessionAsync(int orderHeaderId)
+    {
+        return await _baseService.SendAsync(new RequestDto
+        {
+            ApiType = SD.ApiType.POST,
+            Url = $"{SD.OrderApiBase}/api/order/validate-stripe-session",
+            Data = orderHeaderId
+        });
+    }
 }
