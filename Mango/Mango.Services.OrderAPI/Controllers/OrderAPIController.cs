@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Mango.MessageBus;
 using Mango.Services.OrderAPI.Data;
 using Mango.Services.OrderAPI.Models;
 using Mango.Services.OrderAPI.Models.Dtos;
@@ -13,13 +14,19 @@ using Stripe.Checkout;
 namespace Mango.Services.OrderAPI.Controllers;
 [Route("api/order")]
 [ApiController]
-public class OrderAPIController(AppDbContext db, IMapper mapper, IProductService productService) : ControllerBase
+public class OrderAPIController(AppDbContext db, 
+    IMapper mapper, 
+    IProductService productService, 
+    IConfiguration configuration, 
+    IMessageBus messageBus) : ControllerBase
 {
     protected ResponseDto _response = new();
 
     private readonly AppDbContext _db = db;
     private readonly IMapper _mapper = mapper;
     private readonly IProductService _productService = productService;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IMessageBus _messageBus = messageBus;
 
     [Authorize]
     [HttpPost("create")]
@@ -129,14 +136,25 @@ public class OrderAPIController(AppDbContext db, IMapper mapper, IProductService
 
             if (paymentIntent.Status == "succeeded")
             {
-                // Payment successful
+                // Payment successful.
                 orderHeader.PaymentIntentId = paymentIntent.Id;
                 orderHeader.Status = SD.Status_Approved;
 
                 await _db.SaveChangesAsync();
-            }            
 
-            _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
+                RewardDto rewardDto = new()
+                {
+                    OrderId = orderHeader.OrderHeaderId,
+                    RewardActivity = Convert.ToInt32(orderHeader.OrderTotal),
+                    UserId = orderHeader.UserId
+                };
+
+                // Publish a message to Topic to indicate that an order was created.
+                var topicName = _configuration.GetValue<string>("ServiceBusSettings:OrderCreatedTopicName");
+                await _messageBus.PublishMessageAsync(rewardDto, topicName!);
+
+                _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
+            }
         }
         catch (Exception ex)
         {

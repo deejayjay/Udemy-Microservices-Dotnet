@@ -4,6 +4,7 @@ using Mango.Services.EmailAPI.Models.Dtos;
 using Mango.Services.EmailAPI.Service.IService;
 using System.Text;
 using Mango.Services.EmailAPI.Models;
+using Mango.Services.EmailAPI.Message;
 
 namespace Mango.Services.EmailAPI.Service;
 
@@ -27,7 +28,7 @@ public class EmailService : IEmailService
         if (cartDto.CartDetails is not null)
         {
             sb.AppendLine("<ul>");
-            
+
             foreach (var item in cartDto.CartDetails)
             {
                 sb.AppendLine($"<li>{item.Product?.Name} x {item.Count}</li>");
@@ -46,19 +47,29 @@ public class EmailService : IEmailService
         await LogAndEmailAsync(message, "deejayjay@dotnetmastery.com");
     }
 
+    public async Task LogOrderPlacedAsync(RewardMessage rewardMessage)
+    {
+        var message = @$"<div>
+                            <p>New order placed.</p>
+                            <p><strong>Order ID: </strong>{rewardMessage.OrderId}
+                        </div>";
+
+        await LogAndEmailAsync(message, "deejayjay@dotnetmastery.com");
+    }
+
     private async Task<bool> LogAndEmailAsync(string message, string email)
     {
         try
         {
             var emailLog = new EmailLogger
-            { 
+            {
                 Email = email,
                 Message = message,
                 EmailSent = DateTime.Now
             };
 
             await using var _db = new AppDbContext(_dbOptions);
-            
+
             await _db.AddAsync(emailLog);
             await _db.SaveChangesAsync();
 
