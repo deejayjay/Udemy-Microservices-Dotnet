@@ -6,9 +6,10 @@ using System.IdentityModel.Tokens.Jwt;
 using Newtonsoft.Json;
 
 namespace Mango.Web.Controllers;
-public class CartController(ICartService cartService) : Controller
+public class CartController(ICartService cartService, IOrderService orderService) : Controller
 {
     private readonly ICartService _cartService = cartService;
+    private readonly IOrderService _orderService = orderService;
 
     [Authorize]
     public async Task<IActionResult> Index()
@@ -22,6 +23,27 @@ public class CartController(ICartService cartService) : Controller
     public async Task<IActionResult> Checkout()
     {
         var cart = await LoadCartDtoBasedOnLoggedInUserAsync();
+
+        return View(cart);
+    }
+
+    [HttpPost]
+    [ActionName("Checkout")]
+    public async Task<IActionResult> Checkout(CartDto cartDto)
+    {
+        var cart = await LoadCartDtoBasedOnLoggedInUserAsync();
+        cart.CartHeader.Name = cartDto.CartHeader.Name;
+        cart.CartHeader.Phone = cartDto.CartHeader.Phone;
+        cart.CartHeader.Email = cartDto.CartHeader.Email;
+
+        var response = await _orderService.CreateOrderAsync(cart);
+
+        var orderHeaderDto = JsonConvert.DeserializeObject<OrderHeaderDto>(Convert.ToString(response!.Result)!);
+
+        if(response is not null && response.IsSuccess)
+        {
+            // Get stripe session and redirect to stripe to place order.
+        }
 
         return View(cart);
     }
