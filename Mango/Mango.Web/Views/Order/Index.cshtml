@@ -1,0 +1,65 @@
+﻿@{
+    var status = Context.Request.Query["status"];
+
+    var approved = string.Empty;
+    var readyforpickup = string.Empty;
+    var cancelled = string.Empty;
+    var all = string.Empty;
+
+    switch (status)
+    {
+        case "approved":
+            approved = "active text-white bg-secondary";
+            break;
+        case "readyforpickup":
+            readyforpickup = "active text-white bg-secondary";
+            break;
+        case "cancelled":
+            cancelled = "active text-white bg-secondary";
+            break;
+        default:
+            all = "active text-white bg-secondary";
+            break;
+    }
+}
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ms-0 py-3 d-flex justify-content-between">
+        <div class="row">
+            <h1 class="text-white">Order List</h1>
+        </div>
+        <ul class="list-group list-group-horizontal-sm pt-2">
+            <li class="list-group-item @approved">
+                <a class="text-decoration-none" asp-controller="Order" asp-action="Index" asp-route-status="approved">Approved</a>
+            </li>
+            <li class="list-group-item @readyforpickup">
+                <a class="text-decoration-none" asp-controller="Order" asp-action="Index" asp-route-status="readyforpickup">Ready for Pickup</a>
+            </li>
+            <li class="list-group-item @cancelled">
+                <a class="text-decoration-none" asp-controller="Order" asp-action="Index" asp-route-status="cancelled">Cancelled</a>
+            </li>
+            <li class="list-group-item @all">
+                <a class="text-decoration-none" asp-controller="Order" asp-action="Index" asp-route-status="all">All</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body p-4">
+        <table id="tblOrderData" class="table table-bordered table-striped pt-3 w-100">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/order.js"></script>
+}
