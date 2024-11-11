@@ -14,7 +14,8 @@ public class ProductService(IBaseService baseService) : IProductService
         {
             ApiType = SD.ApiType.POST,
             Url = $"{SD.ProductApiBase}/api/product",
-            Data = productDto
+            Data = productDto,
+            ContentType = SD.ContentType.MultipartFormData
         });
     }
 
@@ -51,7 +52,8 @@ public class ProductService(IBaseService baseService) : IProductService
         {
             ApiType = SD.ApiType.PUT,
             Url = $"{SD.ProductApiBase}/api/product",
-            Data = productDto
+            Data = productDto,
+            ContentType = SD.ContentType.MultipartFormData
         });
     }
 }

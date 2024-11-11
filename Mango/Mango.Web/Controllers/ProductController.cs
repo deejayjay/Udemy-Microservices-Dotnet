@@ -96,7 +96,7 @@ public class ProductController(IProductService productService) : Controller
     [HttpGet]
     public async Task<IActionResult> ProductEdit(int id)
     {
-		var response = await _productService.GetProductByIdAsync(id);
+        var response = await _productService.GetProductByIdAsync(id);
 
 		if (response is not null && response.IsSuccess)
 		{

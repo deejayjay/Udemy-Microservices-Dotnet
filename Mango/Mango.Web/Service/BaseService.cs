@@ -18,7 +18,7 @@ public class BaseService(IHttpClientFactory httpClientFactory, ITokenProvider to
         {
             var client = _httpClientFactory.CreateClient("MangoAPI");
             var message = new HttpRequestMessage();
-            message.Headers.Add("Accept", "application/json");
+            message.Headers.Add("Accept", requestDto.ContentType == ContentType.Json ? "application/json" : "*/*");
 
             // Add token
             if(withBearer)
@@ -29,7 +29,32 @@ public class BaseService(IHttpClientFactory httpClientFactory, ITokenProvider to
 
             message.RequestUri = new Uri(requestDto.Url);
 
-            if (requestDto.Data is not null)
+            if(requestDto.ContentType == ContentType.MultipartFormData)
+            {
+                var content = new MultipartFormDataContent();
+
+                foreach (var prop in requestDto.Data.GetType().GetProperties())
+                {
+                    var value = prop.GetValue(requestDto.Data);
+                    
+                    if (value is FormFile)
+                    {
+                        var file = value as FormFile;
+
+                        if (file is not null)
+                        {
+                            content.Add(new StreamContent(file.OpenReadStream()), prop.Name, file.FileName);
+                        }
+                    }
+                    else
+                    {
+                        content.Add(new StringContent((value != null ? value.ToString() : string.Empty)!), prop.Name);
+                    }
+                }
+
+                message.Content = content;
+            }
+            else if (requestDto.Data is not null)
             {
                 message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8, "application/json");
             }
